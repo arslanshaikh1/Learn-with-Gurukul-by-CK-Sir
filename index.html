@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn with Gurukul - By Ck Sir</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function App() {
+          // Navigation & View state
+          const [activeTab, setActiveTab] = useState('home'); // 'home', 'courses', 'dashboard', 'about'
+          const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+          // Auth States
+          const [currentUser, setCurrentUser] = useState(null);
+          const [showAuthModal, setShowAuthModal] = useState(false);
+          const [authMode, setAuthMode] = useState('signup'); // 'signup' | 'login'
+          const [selectedRole, setSelectedRole] = useState('Student'); // 'Student' | 'Parent' | 'Teacher'
+          const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' });
+
+          // Accordions & Course interaction state
+          const [expandedCourse, setExpandedCourse] = useState(null);
+          
+          // Interactive Quiz state in Dashboard
+          const [activeLesson, setActiveLesson] = useState({
+            id: 1,
+            title: 'गणित (UP Board) - त्रिकोणमिति (Trigonometry) Basic',
+            videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            subject: 'गणित (Maths)'
+          });
+          const [quizAnswered, setQuizAnswered] = useState(null);
+          const [score, setScore] = useState(0);
+
+          // Sample Courses List inspired by screenshot
+          const courseCategories = [
+            {
+              id: 'math-up',
+              title: 'गणित (UP Board)',
+              category: 'UP Board',
+              icon: '📐',
+              count: '24 Chapters',
+              topics: ['वास्तविक संख्याएँ', 'बहुपद', 'दो चर वाले रैखिक समीकरण', 'द्विघात समीकरण', 'त्रिकोणमिति का परिचय']
+            },
+            {
+              id: 'sci-up',
+              title: 'विज्ञान (UP Board)',
+              category: 'UP Board',
+              icon: '🧪',
+              count: '18 Chapters',
+              topics: ['रासायनिक अभिक्रियाएं', 'अम्ल, क्षारक एवं लवण', 'धातु और अधातु', 'प्रकाश - परावर्तन तथा अपवर्तन']
+            },
+            {
+              id: 'math-cbse',
+              title: 'Mathematics (CBSE Class 10)',
+              category: 'CBSE Board',
+              icon: '📊',
+              count: '15 Modules',
+              topics: ['Real Numbers', 'Polynomials', 'Coordinate Geometry', 'Triangles', 'Surface Areas and Volumes']
+            },
+            {
+              id: 'sci-cbse',
+              title: 'Science (CBSE Class 10)',
+              category: 'CBSE Board',
+              icon: '⚡',
+              count: '16 Modules',
+              topics: ['Chemical Reactions', 'Life Processes', 'Control & Coordination', 'Electricity', 'Magnetic Effects']
+            },
+            {
+              id: 'bridge-course',
+              title: 'गणित (ब्रिज) - UP एवं CBSE',
+              category: 'Bridge Course',
+              icon: '🌉',
+              count: '10 Foundation Lessons',
+              topics: ['Basic Arithmetic Speed Up', 'Algebraic Formulas Base', 'Geometry Concepts Clearer']
+            },
+            {
+              id: 'revision-pack',
+              title: 'विज्ञान एवं गणित (रिवीजन स्पेशल)',
+              category: 'Revision Pack',
+              icon: '🔥',
+              count: 'Fast Track',
+              topics: ['Formula Revision', 'Important Questions 2026', 'Model Paper Solved by Ck Sir']
+            }
+          ];
+
+          // Handle Auth actions
+          const handleAuthSubmit = (e) => {
+            e.preventDefault();
+            if (authMode === 'signup') {
+              setCurrentUser({
+                name: authForm.name || 'छात्र (Learner)',
+                email: authForm.email,
+                role: selectedRole
+              });
+            } else {
+              setCurrentUser({
+                name: 'आनंद शर्मा',
+                email: authForm.email || 'student@gurukul.edu',
+                role: 'Student'
+              });
+            }
+            setShowAuthModal(false);
+            setAuthForm({ name: '', email: '', password: '' });
+          };
+
+          const handleLogout = () => {
+            setCurrentUser(null);
+          };
+
+          const toggleCourseExpand = (id) => {
+            setExpandedCourse(expandedCourse === id ? null : id);
+          };
+
+          return (
+            <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-between">
+              
+              {/* 1. HEADER / NAVBAR */}
+              <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-between h-20">
+                    
+                    {/* Custom Logo */}
+                    <div 
+                      className="flex items-center gap-3 cursor-pointer group"
+                      onClick={() => setActiveTab('home')}
+                    >
+                      <img 
+                        src="Log.png" 
+                        alt="Logo" 
+                        className="w-12 h-12 rounded-2xl object-cover shadow-lg border border-amber-400 group-hover:scale-105 transition-transform"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                            Learn with <span className="text-amber-600">Gurukul</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                            By Ck Sir
+                          </span>
+                          <span className="text-[11px] text-slate-500 hidden sm:inline">| डिजिटल शिक्षा क्रांति</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex items-center gap-8 font-medium text-slate-600">
+                      <button 
+                        onClick={() => setActiveTab('home')} 
+                        className={`hover:text-amber-600 transition-colors ${activeTab === 'home' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
+                      >
+                        मुख्य पृष्ठ (Home)
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('courses')} 
+                        className={`hover:text-amber-600 transition-colors ${activeTab === 'courses' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
+                      >
+                        पाठ्यक्रम (Courses)
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('dashboard')} 
+                        className={`hover:text-amber-600 transition-colors ${activeTab === 'dashboard' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
+                      >
+                        डैशबोर्ड & क्विज़
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('about')} 
+                        className={`hover:text-amber-600 transition-colors ${activeTab === 'about' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
+                      >
+                        हमारे बारे में
+                      </button>
+                    </nav>
+
+                    {/* User Auth Controls */}
+                    <div className="hidden md:flex items-center gap-4">
+                      {currentUser ? (
+                        <div className="flex items-center gap-3 bg-slate-100 p-1.5 pl-3 rounded-full border border-slate-200">
+                          <div className="flex flex-col text-right">
+                            <span className="text-sm font-bold text-slate-800 leading-tight">{currentUser.name}</span>
+                            <span className="text-[11px] text-amber-600 font-medium">{currentUser.role}</span>
+                          </div>
+                          <div className="w-9 h-9 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center text-sm shadow">
+                            {currentUser.name.charAt(0)}
+                          </div>
+                          <button 
+                            onClick={handleLogout}
+                            title="लॉग आउट करें"
+                            className="p-2 text-slate-500 hover:text-red-600 hover:bg-white rounded-full transition"
+                          >
+                            🚪
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                            className="text-slate-700 font-semibold hover:text-amber-600 px-4 py-2 rounded-lg transition"
+                          >
+                            लॉग इन करें
+                          </button>
+                          <button 
+                            onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }}
+                            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition transform active:scale-95"
+                          >
+                            साइन अप करें
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mobile Hamburger Button */}
+                    <div className="md:hidden flex items-center">
+                      <button 
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 font-bold text-xl"
+                      >
+                        {mobileMenuOpen ? '✕' : '☰'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile menu dropdown */}
+                {mobileMenuOpen && (
+                  <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-6 space-y-3">
+                    <button 
+                      onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-medium text-slate-700 hover:text-amber-600"
+                    >
+                      मुख्य पृष्ठ (Home)
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('courses'); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-medium text-slate-700 hover:text-amber-600"
+                    >
+                      पाठ्यक्रम (Courses)
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-medium text-slate-700 hover:text-amber-600"
+                    >
+                      डैशबोर्ड & क्विज़
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('about'); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-medium text-slate-700 hover:text-amber-600"
+                    >
+                      हमारे बारे में
+                    </button>
+                    
+                    <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                      {currentUser ? (
+                        <div className="flex items-center justify-between bg-amber-50 p-3 rounded-xl border border-amber-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center">
+                              {currentUser.name.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="font-bold text-sm text-slate-800">{currentUser.name}</div>
+                              <div className="text-xs text-amber-700">{currentUser.role}</div>
+                            </div>
+                          </div>
+                          <button onClick={handleLogout} className="text-red-600 font-semibold text-sm">लॉग आउट</button>
+                        </div>
+                      ) : (
+                        <>
+                          <button 
+                            onClick={() => { setAuthMode('login'); setShowAuthModal(true); setMobileMenuOpen(false); }}
+                            className="w-full text-center py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-700"
+                          >
+                            लॉग इन करें
+                          </button>
+                          <button 
+                            onClick={() => { setAuthMode('signup'); setShowAuthModal(true); setMobileMenuOpen(false); }}
+                            className="w-full text-center py-2.5 rounded-xl bg-amber-500 text-white font-bold shadow"
+                          >
+                            साइन अप करें
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </header>
+
+              {/* MAIN CONTENT ROUTING BASED ON TABS */}
+              <main className="flex-grow">
+                
+                {activeTab === 'home' && (
+                  <div>
+                    {/* 2. HERO SECTION */}
+                    <section className="relative overflow-hidden bg-gradient-to-b from-amber-50/80 via-white to-slate-50 py-16 sm:py-24">
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                        <div className="text-center max-w-3xl mx-auto">
+                          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-sm font-semibold mb-6 border border-amber-200 shadow-sm animate-pulse">
+                            <span>✨ Ck Sir के साथ हर सपना होगा साकार!</span>
+                          </div>
+                          
+                          <h1 className="text-4xl sm:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+                            आज ही साइन अप करें और <br className="hidden sm:inline" />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500">
+                              सीखना शुरू करें!
+                            </span>
+                          </h1>
+                          
+                          <p className="mt-6 text-lg sm:text-xl text-slate-600 leading-relaxed font-normal">
+                            UP Board, CBSE एवं फाउंडेशन क्लासेज के लिए सर्वश्रेष्ठ, भरोसेमंद और आसान हिंदी माध्यम में ऑनलाइन शिक्षा।
+                          </p>
+
+                          {/* Role Selector Buttons */}
+                          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                            <div 
+                              onClick={() => { setSelectedRole('Student'); setAuthMode('signup'); setShowAuthModal(true); }}
+                              className="p-5 bg-white rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:shadow-xl transition-all cursor-pointer group text-left flex items-center justify-between"
+                            >
+                              <div>
+                                <h3 className="font-bold text-lg text-slate-900 group-hover:text-amber-600">छात्र (Student)</h3>
+                                <p className="text-xs text-slate-500 mt-1">खुद से सीखने वाले विद्यार्थी</p>
+                              </div>
+                              <span className="text-2xl">🎓</span>
+                            </div>
+
+                            <div 
+                              onClick={() => { setSelectedRole('Parent'); setAuthMode('signup'); setShowAuthModal(true); }}
+                              className="p-5 bg-white rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:shadow-xl transition-all cursor-pointer group text-left flex items-center justify-between"
+                            >
+                              <div>
+                                <h3 className="font-bold text-lg text-slate-900 group-hover:text-amber-600">परिवार (Parent)</h3>
+                                <p className="text-xs text-slate-500 mt-1">अपने बच्चे की शिक्षा का समर्थन</p>
+                              </div>
+                              <span className="text-2xl">👨‍👩‍👦</span>
+                            </div>
+
+                            <div 
+                              onClick={() => { setSelectedRole('Teacher'); setAuthMode('signup'); setShowAuthModal(true); }}
+                              className="p-5 bg-white rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:shadow-xl transition-all cursor-pointer group text-left flex items-center justify-between"
+                            >
+                              <div>
+                                <h3 className="font-bold text-lg text-slate-900 group-hover:text-amber-600">शिक्षक (Teacher)</h3>
+                                <p className="text-xs text-slate-500 mt-1">कक्षा के साथ मार्गदर्शन</p>
+                              </div>
+                              <span className="text-2xl">📚</span>
+                            </div>
+                          </div>
+
+                          <p className="mt-6 text-sm text-slate-500 font-medium">
+                            क्या आपके पास पहले से ही खाता है?{' '}
+                            <button 
+                              onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
+                              className="text-amber-600 font-bold hover:underline"
+                            >
+                              लॉग इन करें
+                            </button>
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* 3. SCORE IMPROVEMENT & ACCORDION SECTION */}
+                    <section className="py-16 bg-white border-t border-slate-100">
+                      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+                        <div className="text-center mb-10">
+                          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                            Learn with Gurukul आपके स्कोर को बढ़ाता है!
+                          </h2>
+                          <p className="mt-3 text-slate-600 text-lg">
+                            वीडियो देखकर, अभ्यास प्रश्नों को हल करके और AI सहायता प्राप्त करके अपनी पढ़ाई को बनाएं आसान।
+                          </p>
+                        </div>
+
+                        {/* Course List Accordions */}
+                        <div className="space-y-3 bg-slate-50 p-4 rounded-3xl border border-slate-200 shadow-inner">
+                          {courseCategories.map((course) => (
+                            <div 
+                              key={course.id}
+                              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition hover:shadow-md"
+                            >
+                              <button 
+                                onClick={() => toggleCourseExpand(course.id)}
+                                className="w-full flex items-center justify-between p-4 sm:p-5 text-left focus:outline-none"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <span className="text-3xl">{course.icon}</span>
+                                  <div>
+                                    <h3 className="font-bold text-slate-900 text-lg">{course.title}</h3>
+                                    <span className="text-xs text-amber-700 font-medium">{course.count}</span>
+                                  </div>
+                                </div>
+                                <span className="text-slate-400 font-bold">{expandedCourse === course.id ? '▲' : '▼'}</span>
+                              </button>
+
+                              {expandedCourse === course.id && (
+                                <div className="px-5 pb-5 pt-1 border-t border-slate-100 bg-amber-50/40">
+                                  <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">मुख्य अध्याय:</h4>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {course.topics.map((topic, i) => (
+                                      <div key={i} className="flex items-center gap-2 text-sm text-slate-700 bg-white p-2 rounded-lg border border-slate-200">
+                                        <span className="text-emerald-500 font-bold">✓</span>
+                                        <span>{topic}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <button 
+                                    onClick={() => setActiveTab('dashboard')}
+                                    className="mt-4 w-full sm:w-auto px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow transition"
+                                  >
+                                    इस विषय का अध्ययन शुरू करें
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* 4. WHY GURUKUL WORKS */}
+                    <section className="py-16 bg-slate-50 border-t border-slate-200">
+                      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="text-center max-w-2xl mx-auto mb-12">
+                          <h2 className="text-3xl font-extrabold text-slate-900">
+                            Learn with Gurukul क्यों सहायक है?
+                          </h2>
+                          <p className="text-slate-600 mt-2">Ck Sir द्वारा तैयार की गई शिक्षण प्रणाली की विशेषताएं</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm text-center flex flex-col items-center hover:-translate-y-1 transition duration-300">
+                            <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 mb-6 text-2xl">
+                              💡
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-3">वैयक्तिकृत (पर्सनलाइज्ड) अध्ययन</h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                              विद्यार्थी अपनी गति से अभ्यास करते हैं। इससे पहले उनकी समझ में मौजूद कमियाँ दूर होती हैं और फिर उनके सीखने की गति तेज होती है।
+                            </p>
+                          </div>
+
+                          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm text-center flex flex-col items-center hover:-translate-y-1 transition duration-300">
+                            <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 text-2xl">
+                              🛡️
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-3">भरोसेमंद कंटेंट</h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                              विषय विशेषज्ञ Ck Sir और उनकी टीम द्वारा तैयार पाठ। गणित, विज्ञान तथा अन्य विषयों का सम्पूर्ण कवरेज, सदैव सरल भाषा में।
+                            </p>
+                          </div>
+
+                          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm text-center flex flex-col items-center hover:-translate-y-1 transition duration-300">
+                            <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 text-2xl">
+                              📊
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-3">शिक्षकों को सशक्त बनाने के टूल्स</h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                              शिक्षक अपने विद्यार्थियों की समझ में मौजूद कमियों की पहचान कर सकते हैं, प्रत्येक विद्यार्थी को पृथक निर्देश दे सकते हैं।
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* 5. TESTIMONIAL BANNER */}
+                    <section className="py-16 bg-gradient-to-r from-amber-600 to-orange-600 text-white overflow-hidden">
+                      <div className="max-w-4xl mx-auto px-4 text-center">
+                        <blockquote className="text-xl sm:text-2xl font-semibold italic leading-relaxed">
+                          "जब मैं छोटी थी तब मुझे गणित से डर लगता था। लेकिन Learn with Gurukul और Ck Sir की आसान ट्रिक्स की वजह से अब मुझे गणित से प्यार है!"
+                        </blockquote>
+                        <div className="mt-6 flex items-center justify-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-white text-amber-600 font-bold flex items-center justify-center text-lg border-2 border-white">
+                            अ
+                          </div>
+                          <div className="text-left">
+                            <div className="font-bold text-base">अंजलि वर्मा</div>
+                            <div className="text-xs text-amber-200">उत्तर प्रदेश (10th Board Top Scorer)</div>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                )}
+
+                {/* COURSES TAB */}
+                {activeTab === 'courses' && (
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="mb-8">
+                      <h1 className="text-3xl font-extrabold text-slate-900">सभी उपलब्ध पाठ्य क्रम (All Courses)</h1>
+                      <p className="text-slate-600 mt-1">अपने बोर्ड और कक्षा के अनुसार अपने पसंदीदा विषय को चुनें</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {courseCategories.map((c) => (
+                        <div key={c.id} className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition">
+                          <div className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className="text-4xl">{c.icon}</span>
+                              <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">
+                                {c.category}
+                              </span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">{c.title}</h3>
+                            <p className="text-xs text-slate-500 font-medium mb-4">{c.count}</p>
+                            
+                            <div className="space-y-1.5 mb-6">
+                              {c.topics.slice(0, 3).map((t, i) => (
+                                <div key={i} className="text-xs text-slate-600 flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                  {t}
+                                </div>
+                              ))}
+                            </div>
+
+                            <button 
+                              onClick={() => setActiveTab('dashboard')}
+                              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-amber-600 text-white font-bold text-sm transition"
+                            >
+                              अभी पढ़ना शुरू करें
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* DASHBOARD & PRACTICE QUIZ TAB */}
+                {activeTab === 'dashboard' && (
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <div className="flex flex-col md:flex-row gap-8">
+                      
+                      {/* Left Column: Video & Lesson Interactive Area */}
+                      <div className="flex-1">
+                        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm p-6 mb-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="px-3 py-1 bg-red-100 text-red-700 font-bold text-xs rounded-full flex items-center gap-1">
+                              🔴 वीडियो क्लास LIVE
+                            </span>
+                            <span className="text-xs text-slate-500">by Ck Sir</span>
+                          </div>
+
+                          <h2 className="text-2xl font-bold text-slate-900 mb-4">{activeLesson.title}</h2>
+
+                          {/* Mock Video Container */}
+                          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center text-white shadow-inner group">
+                            <div className="text-center p-6">
+                              <div className="w-16 h-16 bg-amber-500/90 rounded-full flex items-center justify-center mx-auto mb-3 cursor-pointer hover:scale-110 transition shadow-lg text-2xl font-bold">
+                                ▶
+                              </div>
+                              <p className="font-semibold text-lg">पाठ 1: बेसिक अवधारणाएं एवं सूत्र</p>
+                              <p className="text-xs text-slate-400 mt-1">वीडियो शुरू करने के लिए क्लिक करें</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
+                            <span className="flex items-center gap-1">⏱️ 25 मिनट</span>
+                            <span className="flex items-center gap-1">⭐ 4.9 (420 रेटिंग्स)</span>
+                          </div>
+                        </div>
+
+                        {/* Interactive Practice Quiz Section */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                              📝 क्विज़ (अभ्यास प्रश्न)
+                            </h3>
+                            <span className="text-sm font-semibold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                              स्कोर: {score} अंक
+                            </span>
+                          </div>
+
+                          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4">
+                            <p className="font-semibold text-slate-800 text-base mb-4">
+                              प्रश्न 1: यदि sin(A) = 3/5 है, तो cos(A) का मान क्या होगा?
+                            </p>
+
+                            <div className="space-y-2.5">
+                              {[
+                                { id: 'a', text: '4/5', correct: true },
+                                { id: 'b', text: '5/3', correct: false },
+                                { id: 'c', text: '3/4', correct: false },
+                                { id: 'd', text: '1/2', correct: false }
+                              ].map((opt) => (
+                                <button
+                                  key={opt.id}
+                                  onClick={() => {
+                                    setQuizAnswered(opt.id);
+                                    if (opt.correct && quizAnswered !== opt.id) {
+                                      setScore(score + 10);
+                                    }
+                                  }}
+                                  className={`w-full text-left p-3.5 rounded-xl border text-sm font-medium transition flex items-center justify-between ${
+                                    quizAnswered === opt.id 
+                                      ? opt.correct 
+                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-900 font-bold' 
+                                        : 'bg-red-50 border-red-500 text-red-900'
+                                      : 'bg-white border-slate-200 hover:border-amber-400 text-slate-700'
+                                  }`}
+                                >
+                                  <span>{opt.id.toUpperCase()}. {opt.text}</span>
+                                  {quizAnswered === opt.id && (
+                                    opt.correct ? (
+                                      <span className="text-emerald-600 font-bold">✓ सही उत्तर</span>
+                                    ) : (
+                                      <span className="text-xs text-red-600 font-bold">गलत उत्तर</span>
+                                    )
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+
+                            {quizAnswered && (
+                              <div className="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900">
+                                <strong>व्याख्या (Ck Sir Note):</strong> पाइथागोरस प्रमेय से: Base = √(5² - 3²) = 4. अतः cos(A) = Base/Hypotenuse = 4/5.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column: User Progress & Course Navigation */}
+                      <div className="w-full md:w-80 flex flex-col gap-6">
+                        
+                        {/* User Stats Card */}
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-3xl shadow-lg">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center font-bold text-xl text-white">
+                              {currentUser ? currentUser.name.charAt(0) : 'G'}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-base leading-snug">
+                                {currentUser ? currentUser.name : 'अतिथि छात्र'}
+                              </h4>
+                              <span className="text-xs text-amber-400">
+                                {currentUser ? currentUser.role : 'साइन इन करें'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 pt-3 border-t border-slate-700">
+                            <div>
+                              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>पाठ्यक्रम प्रगति</span>
+                                <span>65%</span>
+                              </div>
+                              <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                                <div className="bg-amber-500 h-full w-[65%] rounded-full"></div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between text-xs pt-2">
+                              <span className="text-slate-400">अर्जित बैज:</span>
+                              <span className="font-bold text-amber-400 flex items-center gap-1">
+                                🏆 Math Scholar
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Playlist / Upcoming Lessons */}
+                        <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
+                          <h4 className="font-bold text-slate-900 text-base mb-4">अगले अध्याय</h4>
+                          
+                          <div className="space-y-3">
+                            {[
+                              { id: 1, title: 'त्रिकोणमिति अनुपात', status: 'चल रहा है' },
+                              { id: 2, title: 'विशिष्ट कोणों के मान', status: 'आगामी' },
+                              { id: 3, title: 'पूरक कोणों के अनुपात', status: 'आगामी' },
+                              { id: 4, title: 'त्रिकोणमितीय सर्वसमिकाएँ', status: 'आगामी' }
+                            ].map((item, idx) => (
+                              <div 
+                                key={idx}
+                                className={`p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer ${
+                                  idx === 0 ? 'bg-amber-50 border-amber-300 font-bold text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span>▶</span>
+                                  <span>{item.title}</span>
+                                </div>
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-white font-medium border">
+                                  {item.status}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+
+                {/* ABOUT TAB */}
+                {activeTab === 'about' && (
+                  <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+                    <img 
+                      src="Log.png" 
+                      alt="Logo" 
+                      className="w-24 h-24 rounded-3xl object-cover mx-auto mb-6 shadow-xl border-2 border-amber-500" 
+                    />
+                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900">Learn with Gurukul</h1>
+                    <p className="text-lg text-amber-700 font-bold mt-1">By Ck Sir</p>
+
+                    <div className="mt-8 text-slate-600 leading-relaxed text-base space-y-4 text-left bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                      <p>
+                        <strong>Learn with Gurukul</strong> का मुख्य उद्देश्य हर छात्र को गुणवत्तापूर्ण, सरल और समझने योग्य शिक्षा प्रदान करना है। Ck Sir के मार्गदर्शन में, हम गणित और विज्ञान जैसे कठिन विषयों को बेहद आसान बनाते हैं।
+                      </p>
+                      <p>
+                        चाहे आप <strong>UP Board</strong> से हों या <strong>CBSE Board</strong> से, हमारी ऐप और वेबसाइट आपको परीक्षा में सर्वोच्च अंक प्राप्त करने में मदद करने के लिए बनाई गई है।
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+              </main>
+
+              {/* 6. LOGIN / SIGNUP MODAL */}
+              {showAuthModal && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                  <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full overflow-hidden relative">
+                    
+                    {/* Close Button */}
+                    <button 
+                      onClick={() => setShowAuthModal(false)}
+                      className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 font-bold"
+                    >
+                      ✕
+                    </button>
+
+                    <div className="p-8">
+                      <div className="text-center mb-6">
+                        <img 
+                          src="Log.png" 
+                          alt="Logo" 
+                          className="w-14 h-14 rounded-full object-cover mx-auto mb-3 shadow-md border border-amber-400" 
+                        />
+                        <h3 className="text-2xl font-bold text-slate-900">
+                          {authMode === 'signup' ? 'नया खाता बनाएं' : 'लॉग इन करें'}
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-1">Learn with Gurukul (By Ck Sir)</p>
+                      </div>
+
+                      {/* Role Picker (Student / Parent / Teacher) */}
+                      {authMode === 'signup' && (
+                        <div className="mb-6">
+                          <label className="block text-xs font-bold text-slate-600 uppercase mb-2">अपनी भूमिका चुनें:</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['Student', 'Parent', 'Teacher'].map((role) => (
+                              <button
+                                key={role}
+                                type="button"
+                                onClick={() => setSelectedRole(role)}
+                                className={`py-2 text-xs font-bold rounded-xl border transition ${
+                                  selectedRole === role 
+                                    ? 'bg-amber-50 border-amber-500 text-amber-800 shadow-sm' 
+                                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {role === 'Student' ? 'छात्र' : role === 'Parent' ? 'अभिभावक' : 'शिक्षक'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleAuthSubmit} className="space-y-4">
+                        {authMode === 'signup' && (
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-1">पूरा नाम</label>
+                            <input 
+                              type="text"
+                              required
+                              placeholder="जैसे: राहुल शर्मा"
+                              value={authForm.name}
+                              onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
+                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm"
+                            />
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">ईमेल आईडी</label>
+                          <input 
+                            type="email"
+                            required
+                            placeholder="name@example.com"
+                            value={authForm.email}
+                            onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">पासवर्ड</label>
+                          <input 
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            value={authForm.password}
+                            onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-amber-500 text-sm"
+                          />
+                        </div>
+
+                        <button 
+                          type="submit"
+                          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-sm shadow-md transition transform active:scale-95"
+                        >
+                          {authMode === 'signup' ? 'खाता बनाएं (Sign Up)' : 'साइन इन करें (Sign In)'}
+                        </button>
+                      </form>
+
+                      <div className="mt-6 text-center text-xs text-slate-500">
+                        {authMode === 'signup' ? (
+                          <p>
+                            पहले से खाता है?{' '}
+                            <button 
+                              onClick={() => setAuthMode('login')}
+                              className="text-amber-600 font-bold hover:underline"
+                            >
+                              लॉग इन करें
+                            </button>
+                          </p>
+                        ) : (
+                          <p>
+                            खाता नहीं है?{' '}
+                            <button 
+                              onClick={() => setAuthMode('signup')}
+                              className="text-amber-600 font-bold hover:underline"
+                            >
+                              साइन अप करें
+                            </button>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 7. FOOTER */}
+              <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    <div>
+                      <div className="flex items-center gap-2 text-white font-bold text-lg mb-3">
+                        <img 
+                          src="Log.png" 
+                          alt="Logo" 
+                          className="w-8 h-8 rounded-full object-cover border border-amber-400"
+                        />
+                        Learn with Gurukul
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        By Ck Sir. शिक्षा को सभी छात्रों के लिए सुलभ, सरल और प्रेरणादायक बनाने के संकल्प के साथ।
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-3">क्लास & बोर्ड</h4>
+                      <ul className="space-y-2 text-xs">
+                        <li className="hover:text-amber-400 cursor-pointer">UP Board Mathematics</li>
+                        <li className="hover:text-amber-400 cursor-pointer">UP Board Science</li>
+                        <li className="hover:text-amber-400 cursor-pointer">CBSE Class 10 Math</li>
+                        <li className="hover:text-amber-400 cursor-pointer">Bridge Foundation</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-3">लिंक्स</h4>
+                      <ul className="space-y-2 text-xs">
+                        <li className="hover:text-amber-400 cursor-pointer" onClick={() => setActiveTab('home')}>मुख्य पृष्ठ</li>
+                        <li className="hover:text-amber-400 cursor-pointer" onClick={() => setActiveTab('courses')}>पाठ्यक्रम</li>
+                        <li className="hover:text-amber-400 cursor-pointer" onClick={() => setActiveTab('dashboard')}>लाइव डैशबोर्ड</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-3">सपोर्ट & सहायता</h4>
+                      <p className="text-xs text-slate-400 mb-2">किसी भी सवाल या सहायता के लिए संपर्क करें</p>
+                      <span className="inline-block px-3 py-1 bg-slate-800 text-amber-400 text-xs font-mono rounded border border-slate-700">
+                        support@learnwithgurukul.com
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+                    <p>© 2026 Learn with Gurukul (By Ck Sir). सर्वाधिकार सुरक्षित।</p>
+                    <div className="flex gap-4 mt-2 sm:mt-0">
+                      <span className="hover:text-slate-400 cursor-pointer">गोपनीयता नीति</span>
+                      <span className="hover:text-slate-400 cursor-pointer">सेवा की शर्तें</span>
+                    </div>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
