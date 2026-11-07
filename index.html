@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learn with Gurukul - By Ck Sir</title>
+    <!-- PWA Web App Manifest -->
+    <meta name="theme-color" content="#d97706">
+    <link rel="manifest" href="manifest.json">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React 18 & ReactDOM CDN -->
@@ -58,7 +61,7 @@
 
         function App() {
           // Navigation & View state
-          const [activeTab, setActiveTab] = useState('home'); // 'home', 'courses', 'dashboard', 'about'
+          const [activeTab, setActiveTab] = useState('home'); 
           const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
           // Persistent Database for Registered Students List (Ck Sir Admin Tracking)
@@ -77,8 +80,8 @@
             return savedUser ? JSON.parse(savedUser) : null;
           });
           const [showAuthModal, setShowAuthModal] = useState(false);
-          const [authMode, setAuthMode] = useState('signup'); // 'signup' | 'login'
-          const [selectedRole, setSelectedRole] = useState('Student'); // 'Student' | 'Parent' | 'Teacher'
+          const [authMode, setAuthMode] = useState('signup'); 
+          const [selectedRole, setSelectedRole] = useState('Student'); 
           const [authForm, setAuthForm] = useState({ name: '', email: '', password: '', batch: 'Tuition (LKG-10th)', mobile: '' });
 
           // Accordions & Course interaction state
@@ -94,6 +97,11 @@
 
           // Ck Sir Interactive NCERT Class & Chapter System
           const [selectedClass, setSelectedClass] = useState('Class 10th');
+
+          // Khan Academy Interactive Engine States
+          const [khanLevel, setKhanLevel] = useState(1);
+          const [khanStreak, setKhanStreak] = useState(3);
+          const [khanScore, setKhanScore] = useState(0);
 
           // Student Review & Solution Video State
           const [studentRating, setStudentRating] = useState(5);
@@ -420,7 +428,7 @@
             setExpandedCourse(expandedCourse === id ? null : id);
           };
 
-          // Admin WhatsApp Notification Broadcast (Sends to 8840008485 or Specific Student)
+          // Admin WhatsApp Notification Broadcast
           const handleSendWhatsAppBroadcast = (customMobile = '') => {
             const targetPhone = customMobile || '918840008485';
             if (!adminMsg && !customMobile) {
@@ -433,7 +441,7 @@
             alert('WhatsApp update successfully sent!');
           };
 
-          // Admin Video Upload Function (Auto-saves to Portal for students to watch later)
+          // Admin Video Upload Function
           const handleUploadVideo = (e) => {
             e.preventDefault();
             if (!newVidTitle) return;
@@ -449,7 +457,7 @@
             setUploadedVideos([newItem, ...uploadedVideos]);
             setNewVidTitle('');
             setNewVidNotes('');
-            alert('Live/Recorded video aur NCERT Notes portal par automatically save ho gaye hain taaki students baad mein dekh sakein!');
+            alert('Live/Recorded video aur NCERT Notes portal par automatically save ho gaye hain!');
           };
 
           // Student Solution Video Upload Submit
@@ -505,7 +513,7 @@
           return (
             <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-between">
               
-              {/* 1. HEADER / NAVBAR */}
+              {/* HEADER / NAVBAR */}
               <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="flex items-center justify-between h-20">
@@ -560,6 +568,12 @@
                         लाइव & वीडियो पोर्टल
                       </button>
                       <button 
+                        onClick={() => setActiveTab('khan-tools')} 
+                        className={`hover:text-amber-600 transition-colors ${activeTab === 'khan-tools' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
+                      >
+                        🎓 Khan Style Tools
+                      </button>
+                      <button 
                         onClick={() => setActiveTab('about')} 
                         className={`hover:text-amber-600 transition-colors ${activeTab === 'about' ? 'text-amber-600 font-bold border-b-2 border-amber-600 py-1' : ''}`}
                       >
@@ -575,6 +589,12 @@
 
                     {/* User Auth & Admin Panel controls */}
                     <div className="hidden md:flex items-center gap-3">
+                      <button 
+                        onClick={() => alert("App Installation: Open Chrome menu (3 dots) on your phone and tap 'Add to Home screen' or 'Install app' to download App!")} 
+                        className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 text-xs font-bold hover:bg-amber-200 transition"
+                      >
+                        📱 Download App
+                      </button>
                       {currentUser ? (
                         <div className="flex items-center gap-3 bg-slate-100 p-1.5 pl-3 rounded-full border border-slate-200">
                           <div className="flex flex-col text-right">
@@ -652,49 +672,23 @@
                       लाइव & वीडियो पोर्टल
                     </button>
                     <button 
+                      onClick={() => { setActiveTab('khan-tools'); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-medium text-amber-600 font-bold"
+                    >
+                      🎓 Khan Style Tools
+                    </button>
+                    <button 
                       onClick={() => { setActiveTab('about'); setMobileMenuOpen(false); }}
                       className="block w-full text-left py-2 font-medium text-slate-700 hover:text-amber-600"
                     >
                       विशेषताएं & समर्थक
                     </button>
                     <button 
-                      onClick={() => { setShowPayModal(true); setMobileMenuOpen(false); }}
-                      className="block w-full text-left py-2 font-bold text-emerald-600"
+                      onClick={() => { alert("App Installation: Tap Chrome menu (3 dots) -> Add to Home screen / Install app"); setMobileMenuOpen(false); }}
+                      className="block w-full text-left py-2 font-bold text-amber-700"
                     >
-                      फीस भुगतान (₹{courseFee})
+                      📱 Download Mobile App
                     </button>
-                    
-                    <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
-                      {currentUser ? (
-                        <div className="flex items-center justify-between bg-amber-50 p-3 rounded-xl border border-amber-200">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center">
-                              {currentUser.name.charAt(0)}
-                            </div>
-                            <div>
-                              <div className="font-bold text-sm text-slate-800">{currentUser.name}</div>
-                              <div className="text-xs text-amber-700">{currentUser.role} • {currentUser.batch}</div>
-                            </div>
-                          </div>
-                          <button onClick={handleLogout} className="text-red-600 font-semibold text-sm">लॉग आउट</button>
-                        </div>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => { setAuthMode('login'); setShowAuthModal(true); setMobileMenuOpen(false); }}
-                            className="w-full text-center py-2.5 rounded-xl border border-slate-300 font-semibold text-slate-700"
-                          >
-                            लॉग इन करें
-                          </button>
-                          <button 
-                            onClick={() => { setAuthMode('signup'); setShowAuthModal(true); setMobileMenuOpen(false); }}
-                            className="w-full text-center py-2.5 rounded-xl bg-amber-500 text-white font-bold shadow"
-                          >
-                            साइन अप करें
-                          </button>
-                        </>
-                      )}
-                    </div>
                   </div>
                 )}
               </header>
@@ -1111,6 +1105,79 @@
                         </div>
                       </div>
                     </section>
+                  </div>
+                )}
+
+                {/* KHAN ACADEMY STYLE INTERACTIVE STUDY TOOLS TAB */}
+                {activeTab === 'khan-tools' && (
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                      <div>
+                        <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Interactive Learning Hub</span>
+                        <h1 className="text-3xl font-black text-slate-900 mt-2">Khan Academy Style Study Tools & Practice</h1>
+                        <p className="text-slate-600 text-sm mt-1">गणित, विज्ञान और अंग्रेजी के लिए लेवल-वाइज स्किल्स, अभ्यास प्रश्न और यूनिट प्रोग्रेस ट्रैकर।</p>
+                      </div>
+                      <div className="mt-4 md:mt-0 bg-white border border-amber-200 px-5 py-3 rounded-2xl shadow-sm flex items-center gap-4">
+                        <span className="text-3xl">🔥</span>
+                        <div>
+                          <p className="text-xs font-bold text-amber-800">Streak: <span className="text-sm font-black">{khanStreak} Days</span></p>
+                          <p className="text-xs text-slate-500">Level {khanLevel} Mastered ({khanScore}/50 XP)</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                      {/* Math Tool */}
+                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="text-3xl p-2 bg-amber-100 rounded-2xl">📐</span>
+                            <div>
+                              <h3 className="font-bold text-slate-900">Math Practice Tool</h3>
+                              <p className="text-xs text-slate-500">NCERT Class 1 to 10 (Interactive)</p>
+                            </div>
+                          </div>
+                          <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 mb-4 text-xs">
+                            <p className="font-bold text-slate-800 mb-2">Q: 5 + 3 × 2 = ?</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button onClick={() => alert('Galat uttar! Dobara koshish karein.')} className="p-2 bg-white rounded-xl border border-amber-300 font-bold hover:bg-amber-100">A) 16</button>
+                              <button onClick={() => { setKhanScore(khanScore + 10); alert('Sahi uttar! +10 XP earned.'); }} className="p-2 bg-white rounded-xl border border-amber-300 font-bold hover:bg-emerald-100 text-emerald-800">B) 11</button>
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-bold text-amber-700">Level {khanLevel} Skill Active</span>
+                      </div>
+
+                      {/* Science Tool */}
+                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="text-3xl p-2 bg-emerald-100 rounded-2xl">🔬</span>
+                            <div>
+                              <h3 className="font-bold text-slate-900">Science Concepts</h3>
+                              <p className="text-xs text-slate-500">Biology, Physics & Chemistry units</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 mb-4">Unit 1: Living & Non-Living entities aur chemical equations ke interactive flashcards.</p>
+                        </div>
+                        <button onClick={() => alert('Science mastery module loaded!')} className="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-xl">Start Science Drill</button>
+                      </div>
+
+                      {/* English Grammar Tool */}
+                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <span className="text-3xl p-2 bg-purple-100 rounded-2xl">📖</span>
+                            <div>
+                              <h3 className="font-bold text-slate-900">English Grammar & Skills</h3>
+                              <p className="text-xs text-slate-500">Vocabulary, Tenses & Sentences</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 mb-4">Animals vs Foods classification aur basic grammar practice sets.</p>
+                        </div>
+                        <button onClick={() => alert('English grammar module loaded!')} className="w-full py-2 bg-purple-600 text-white font-bold text-xs rounded-xl">Start Grammar Drill</button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1624,7 +1691,7 @@
                 </div>
               )}
 
-              {/* 7. FOOTER */}
+              {/* FOOTER */}
               <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
